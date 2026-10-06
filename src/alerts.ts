@@ -39,6 +39,36 @@ export async function sendAlert(
   }
 }
 
+/**
+ * Find the chat the owner just messaged the bot from, so they never have to
+ * read getUpdates JSON by hand. Returns the most recent private chat.
+ */
+export async function detectChatId(
+  channel: AlertChannel,
+  botToken: string
+): Promise<{ chatId: string; name: string } | { error: string }> {
+  try {
+    const res = await fetch(`${HOSTS[channel]}/bot${botToken}/getUpdates`);
+    const body = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string; result?: any[] };
+    if (!body.ok) {
+      // Bale answers a bad token with 400 "Token not found", Telegram with 401/404.
+      const badToken = [400, 401, 404].includes(res.status) || /token/i.test(body.description || '');
+      return { error: badToken ? 'توکن ربات اشتباه است' : body.description || `HTTP ${res.status}` };
+    }
+    const updates = [...(body.result || [])].reverse();
+    for (const u of updates) {
+      const chat = (u.message || u.edited_message || u.my_chat_member)?.chat;
+      if (chat?.id !== undefined) {
+        const name = [chat.first_name, chat.last_name].filter(Boolean).join(' ') || chat.title || chat.username || '';
+        return { chatId: String(chat.id), name };
+      }
+    }
+    return { error: 'پیامی پیدا نشد. اول به ربات خودتان /start بفرستید و دوباره امتحان کنید.' };
+  } catch (err: any) {
+    return { error: `ارتباط با ${channel === 'bale' ? 'بله' : 'تلگرام'} برقرار نشد: ${err.message}` };
+  }
+}
+
 export const alerts = {
   complaint(customerId: string, message: string) {
     return sendAlert(

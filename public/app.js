@@ -419,6 +419,15 @@ $('form-alerts').addEventListener('submit', action(async () => {
   toast('ذخیره شد');
   await loadSettings();
 }));
+$('btn-detect-chat').addEventListener('click', action(async () => {
+  const { chatId, name } = await api('/alerts/detect-chat', {
+    method: 'POST',
+    body: { channel: $('alert-channel').value, botToken: $('alert-token').value.trim() },
+  });
+  $('alert-chat').value = chatId;
+  toast(`پیدا شد${name ? `: ${name}` : ''}. حالا «ذخیره» را بزنید.`);
+}));
+
 $('btn-alert-test').addEventListener('click', action(async () => {
   await api('/alerts/test', {
     method: 'POST',

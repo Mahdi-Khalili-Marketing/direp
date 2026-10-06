@@ -251,8 +251,11 @@
         <label for="alert-token">توکن ربات <span class="muted" id="token-state"></span></label>
         <input type="password" id="alert-token" class="ltr" autocomplete="off" placeholder="از @botfather در بله یا BotFather در تلگرام">
         <label for="alert-chat">شناسه چت (Chat ID)</label>
-        <input type="text" id="alert-chat" class="ltr">
-        <p class="muted">شناسه چت: به ربات خودتان پیام بدهید، سپس آدرس <span class="ltr">https://tapi.bale.ai/bot&lt;TOKEN&gt;/getUpdates</span> (برای تلگرام <span class="ltr">api.telegram.org</span>) را باز کنید و عدد <span class="ltr">chat.id</span> را بردارید.</p>
+        <div class="row" style="margin-top:0">
+          <input type="text" id="alert-chat" class="ltr" style="flex:1;min-width:180px">
+          <button class="btn ghost" type="button" id="btn-detect-chat">پیدا کردن خودکار</button>
+        </div>
+        <p class="muted">در بله یا تلگرام ربات خودتان را باز کنید و <span class="ltr">/start</span> بفرستید، بعد «پیدا کردن خودکار» را بزنید.</p>
         <div class="row">
           <button class="btn" type="submit">ذخیره</button>
           <button class="btn ghost" type="button" id="btn-alert-test">ارسال پیام تست</button>

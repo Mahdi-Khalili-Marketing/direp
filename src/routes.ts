@@ -3,7 +3,7 @@ import { Router, Request, Response } from 'express';
 import { db, getSetting, setSetting } from './db.js';
 import { config } from './config.js';
 import { boxApi, BoxApiError } from './boxapi.js';
-import { sendAlert, AlertChannel } from './alerts.js';
+import { sendAlert, detectChatId, AlertChannel } from './alerts.js';
 import { DEFAULT_REPLIES, Intent, REPLY_OFF } from './intents.js';
 import {
   normalizePhone, getOwner, createOwner, checkLogin, changePassword,
@@ -183,6 +183,14 @@ api.post('/alerts/test', async (req, res) => {
   if (!['telegram', 'bale'].includes(channel) || !botToken || !chatId) return fail(res, 400, 'کانال، توکن ربات و شناسه چت لازم است');
   const ok = await sendAlert('✅ <b>Direp</b>: هشدارها به این چت ارسال می‌شوند.', { channel, botToken, chatId });
   ok ? res.json({ status: 'ok' }) : fail(res, 502, 'ارسال پیام تست ناموفق بود. توکن و شناسه چت را بررسی کنید.');
+});
+
+api.post('/alerts/detect-chat', async (req, res) => {
+  const channel = str(req.body?.channel, 20) as AlertChannel;
+  const botToken = str(req.body?.botToken, 200) || getSetting('alert_bot_token') || '';
+  if (!['telegram', 'bale'].includes(channel) || !botToken) return fail(res, 400, 'اول پیام‌رسان و توکن ربات را وارد کنید');
+  const result = await detectChatId(channel, botToken);
+  'error' in result ? fail(res, 422, result.error) : res.json(result);
 });
 
 // ---------- rules ----------
