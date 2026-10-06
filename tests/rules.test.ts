@@ -67,6 +67,23 @@ describe('Follow-Gate (async follow_status)', () => {
     expect(mocks.privateReply).toHaveBeenCalledWith(ACCOUNT, 'c9', baseRule.dmText, expect.any(Array));
   });
 
+  it('understands the real BoxAPI follow_status payload', async () => {
+    await processEvent(comment('29171758199107756', 'direp قیمت', '18165105577489597'));
+    // Captured from a live delivery on 2026-10-06.
+    await processEvent({
+      event_id: 'action_follow_status_a9d28af6',
+      event_type: 'action.follow_status',
+      account_id: ACCOUNT,
+      data: {
+        request: { account_id: ACCOUNT, customer_id: '29171758199107756' },
+        success: true,
+        result: { is_user_follow_business: false, customer_id: '29171758199107756' },
+        error: null,
+      },
+    });
+    expect(mocks.privateReply).toHaveBeenCalledWith(ACCOUNT, '18165105577489597', 'اول پیج رو فالو کنید');
+  });
+
   it('asks non-followers to follow first', async () => {
     await processEvent(comment('fan2', 'قیمت', 'c10'));
     await processEvent({

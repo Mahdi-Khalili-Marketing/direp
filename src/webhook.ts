@@ -86,11 +86,12 @@ export async function processEvent(payload: any): Promise<void> {
   }
 
   if (type.includes('follow')) {
-    // The docs do not show this payload; keep the latest one for troubleshooting.
+    // Observed live (2026-10-06): data.result = { is_user_follow_business, customer_id }.
+    // The docs do not show it, so keep the latest one for troubleshooting.
     setSetting('last_follow_event', JSON.stringify(payload).slice(0, 4000));
     const result = data.result ?? data;
-    const customerId = String(result.customer_id ?? data.customer_id ?? result.user_id ?? result.id ?? '');
-    const following = pickBoolean(result.is_following, result.follows, result.following, result.data?.is_following);
+    const customerId = String(result.customer_id ?? data.request?.customer_id ?? data.customer_id ?? '');
+    const following = pickBoolean(result.is_user_follow_business, result.is_following, result.data?.is_following);
     if (customerId && following !== undefined) await handleFollowResult(accountId, customerId, following);
     return;
   }
