@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Direp | اتوماسیون دایرکت اینستاگرام</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- First run: create the owner account -->
+<section id="screen-setup" class="wrap auth" hidden>
+  <span class="brand">Direp</span>
+  <p class="muted" style="text-align:center">اتوماسیون رایگان دایرکت و کامنت اینستاگرام، روی API رسمی BoxAPI</p>
+  <form class="card" id="form-setup">
+    <h2>راه‌اندازی اولیه</h2>
+    <p class="muted">این حساب مدیر همین نصب است. فقط یک بار ساخته می‌شود.</p>
+    <label for="setup-name">نام فروشگاه</label>
+    <input type="text" id="setup-name" required maxlength="100">
+    <label for="setup-phone">شماره موبایل</label>
+    <input type="tel" id="setup-phone" class="ltr" placeholder="0912 345 6789" required>
+    <label for="setup-password">رمز عبور (حداقل ۸ کاراکتر)</label>
+    <input type="password" id="setup-password" minlength="8" required autocomplete="new-password">
+    <div class="row"><button class="btn" type="submit">ساخت حساب و ورود</button></div>
+  </form>
+</section>
+
+<section id="screen-login" class="wrap auth" hidden>
+  <span class="brand">Direp</span>
+  <form class="card" id="form-login">
+    <h2>ورود</h2>
+    <label for="login-phone">شماره موبایل</label>
+    <input type="tel" id="login-phone" class="ltr" placeholder="0912 345 6789" required>
+    <label for="login-password">رمز عبور</label>
+    <input type="password" id="login-password" required autocomplete="current-password">
+    <div class="row"><button class="btn" type="submit">ورود</button></div>
+  </form>
+</section>
+
+<section id="screen-app" hidden>
+  <header class="top">
+    <div class="wrap">
+      <span class="brand">Direp <small id="page-name"></small></span>
+      <button class="btn ghost small" id="btn-logout">خروج</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="dry-run" class="card" style="background:var(--warn-soft)" hidden>
+      حالت آزمایشی (BOXAPI_DRY_RUN) فعال است: هیچ پیامی واقعاً ارسال نمی‌شود.
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="muted">قوانین فعال</span><b id="st-rules">-</b></div>
+      <div class="stat"><span class="muted">مخاطبین</span><b id="st-contacts">-</b></div>
+      <div class="stat"><span class="muted">سبدهای در جریان</span><b id="st-pending">-</b></div>
+      <div class="stat"><span class="muted">پرداخت‌شده بعد از پیگیری</span><b id="st-paid">-</b></div>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="connect" class="active">اتصال پیج</button>
+      <button data-tab="rules">کامنت به دایرکت</button>
+      <button data-tab="replies">پاسخ خودکار دایرکت</button>
+      <button data-tab="recovery">بازیابی سبد خرید</button>
+      <button data-tab="contacts">مشتریان</button>
+      <button data-tab="posts">پست‌ها</button>
+      <button data-tab="alerts">هشدار تلگرام / بله</button>
+      <button data-tab="account">حساب</button>
+    </nav>
+
+    <!-- Connect -->
+    <section data-panel="connect">
+      <div class="card">
+        <h2>راه‌اندازی در ۴ قدم</h2>
+        <ol class="steps">
+          <li id="step-key"><div><b>کلید BoxAPI</b><br><span class="muted">از پنل BoxAPI، بخش «تنظیمات API» کپی کنید. پلن پایه BoxAPI ماهانه ۷۹۰ هزار تومان است (۷ روز رایگان). Direp خودش رایگان است.</span></div></li>
+          <li id="step-page"><div><b>انتخاب پیج</b><br><span class="muted">پیجی که در BoxAPI وصل کرده‌اید را انتخاب کنید.</span></div></li>
+          <li id="step-hook"><div><b>ثبت آدرس وب‌هوک در BoxAPI</b><br><span class="muted">آدرس پایین را در پنل BoxAPI، بخش «تنظیمات API»، قسمت Webhook وارد کنید. باید HTTPS باشد.</span></div></li>
+          <li id="step-rule"><div><b>اولین قانون</b><br><span class="muted">در تب «کامنت به دایرکت» یک قانون بسازید.</span></div></li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>کلید BoxAPI</h3>
+        <p class="muted">کلید فعلی: <span id="key-hint" class="ltr">ثبت نشده</span></p>
+        <form id="form-key" class="row">
+          <input type="password" id="boxapi-key" class="ltr" placeholder="X-Api-Key" style="flex:1;min-width:220px" autocomplete="off">
+          <button class="btn" type="submit">ذخیره</button>
+          <button class="btn ghost" type="button" id="btn-check">بررسی و نمایش پیج‌ها</button>
+        </form>
+        <div id="boxapi-result" hidden>
+          <p class="muted" id="plan-line"></p>
+          <div id="accounts"></div>
+          <div class="row"><a class="btn ghost" id="connect-link" target="_blank" rel="noopener" hidden>اتصال پیج جدید در BoxAPI</a></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>وب‌هوک</h3>
+        <label for="webhook-url">آدرس وب‌هوک این نصب</label>
+        <div class="row" style="margin-top:0">
+          <input type="text" id="webhook-url" class="ltr" readonly style="flex:1;min-width:220px">
+          <button class="btn ghost" type="button" id="btn-copy-hook">کپی</button>
+        </div>
+        <p class="muted">این آدرس کلید مخفی دارد؛ آن را جایی منتشر نکنید.</p>
+        <form id="form-secret">
+          <label for="webhook-secret">Webhook Secret (اختیاری ولی توصیه‌شده)</label>
+          <p class="muted">اگر در پنل BoxAPI «Webhook Secret» ساخته‌اید، اینجا وارد کنید تا امضای هر پیام بررسی شود. وضعیت: <span id="secret-state"></span></p>
+          <div class="row" style="margin-top:0">
+            <input type="password" id="webhook-secret" class="ltr" style="flex:1;min-width:220px" autocomplete="off">
+            <button class="btn" type="submit">ذخیره</button>
+            <button class="btn ghost" type="button" id="btn-clear-secret">حذف</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Rules -->
+    <section data-panel="rules" hidden>
+      <div class="card">
+        <h2>قوانین کامنت به دایرکت</h2>
+        <p class="muted">وقتی کسی زیر پست کلمه کلیدی را کامنت کند، جواب کامنت و پیام دایرکت خودکار می‌گیرد. با Follow-Gate اول فالو بودنش بررسی می‌شود.</p>
+        <div id="rules-list"></div>
+      </div>
+      <form class="card" id="form-rule">
+        <h3 id="rule-form-title">قانون جدید</h3>
+        <div class="row" style="margin-top:0">
+          <span class="muted">قالب آماده:</span>
+          <button type="button" class="btn ghost small" data-preset="clothing">پوشاک</button>
+          <button type="button" class="btn ghost small" data-preset="cafe">کافه / شیرینی</button>
+          <button type="button" class="btn ghost small" data-preset="course">دوره آموزشی</button>
+        </div>
+        <input type="hidden" id="rule-id">
+        <div class="grid two">
+          <div>
+            <label for="rule-keyword">کلمه‌های کلیدی (با ویرگول جدا کنید)</label>
+            <input type="text" id="rule-keyword" placeholder="قیمت، خرید، price">
+          </div>
+          <div>
+            <label for="rule-match">نوع تطبیق</label>
+            <select id="rule-match">
+              <option value="CONTAINS">کامنت شامل کلمه باشد</option>
+              <option value="EXACT">کامنت دقیقاً همین کلمه باشد</option>
+              <option value="ANY">به همه کامنت‌ها</option>
+            </select>
+          </div>
+        </div>
+        <label for="rule-replies">جواب‌های زیر کامنت (هر خط یکی، به‌صورت تصادفی انتخاب می‌شود)</label>
+        <textarea id="rule-replies">براتون دایرکت شد 🌸
+دایرکت رو چک کنید ✨</textarea>
+        <label for="rule-dm">متن دایرکت</label>
+        <textarea id="rule-dm" required></textarea>
+        <div class="grid two">
+          <div>
+            <label for="rule-btn-title">عنوان دکمه (اختیاری، حداکثر ۲۰ حرف)</label>
+            <input type="text" id="rule-btn-title" maxlength="20" placeholder="ثبت سفارش">
+          </div>
+          <div>
+            <label for="rule-btn-url">لینک دکمه</label>
+            <input type="url" id="rule-btn-url" class="ltr" placeholder="https://">
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="rule-follow"> Follow-Gate: فقط فالوورها پیام اصلی را بگیرند</label>
+        <div id="rule-unfollowed-wrap" hidden>
+          <label for="rule-unfollowed">پیام برای کسی که فالو نکرده</label>
+          <textarea id="rule-unfollowed">سلام! برای دریافت قیمت و تخفیف، اول پیج رو فالو کنید و دوباره کامنت بذارید 🌺</textarea>
+        </div>
+        <div class="row">
+          <button class="btn" type="submit">ذخیره قانون</button>
+          <button class="btn ghost" type="button" id="btn-rule-reset">قانون جدید</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Auto replies -->
+    <section data-panel="replies" hidden>
+      <form class="card" id="form-replies">
+        <h2>پاسخ خودکار دایرکت</h2>
+        <p class="muted">ربات نوع پیام مشتری را تشخیص می‌دهد (فارسی و فینگلیش) و جواب شما را می‌فرستد. قیمت واقعی محصول را ربات نمی‌داند؛ متن را مطابق فروشگاه خودتان بنویسید.</p>
+        <label class="check"><input type="checkbox" id="auto-reply-enabled"> پاسخ خودکار دایرکت روشن باشد</label>
+        <div id="replies-list"></div>
+        <div class="row"><button class="btn" type="submit">ذخیره</button></div>
+      </form>
+    </section>
+
+    <!-- Recovery -->
+    <section data-panel="recovery" hidden>
+      <form class="card" id="form-recovery">
+        <h2>بازیابی سبد خرید</h2>
+        <p class="muted">به کسی که قیمت پرسید و خرید نکرد، ۲ ساعت بعد یک پیام دوستانه و ۲۰ ساعت بعد پیام دوم (با کد تخفیف) ارسال می‌شود؛ همه داخل پنجره ۲۴ ساعته متا. با رسید پرداخت، پیگیری متوقف می‌شود.</p>
+        <label class="check"><input type="checkbox" id="recovery-enabled"> بازیابی سبد خرید روشن باشد</label>
+        <div class="grid two">
+          <div>
+            <label for="discount-code">کد تخفیف پیام دوم (اختیاری)</label>
+            <input type="text" id="discount-code" class="ltr" maxlength="50">
+          </div>
+          <div>
+            <label for="payment-link">لینک ثبت سفارش (اختیاری)</label>
+            <input type="url" id="payment-link" class="ltr" placeholder="https://">
+          </div>
+        </div>
+        <label for="step1-text">متن دلخواه پیام اول (خالی = متن پیش‌فرض)</label>
+        <textarea id="step1-text"></textarea>
+        <label for="step2-text">متن دلخواه پیام دوم (خالی = متن پیش‌فرض با کد تخفیف و لینک)</label>
+        <textarea id="step2-text"></textarea>
+        <div class="row"><button class="btn" type="submit">ذخیره</button></div>
+      </form>
+      <div class="card">
+        <h3>پیگیری‌ها</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>مشتری</th><th>وضعیت</th><th>پیام بعدی</th><th>شروع</th><th></th></tr></thead>
+          <tbody id="inquiries-body"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- Contacts -->
+    <section data-panel="contacts" hidden>
+      <div class="card">
+        <h2>مشتریان</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>کاربر</th><th>موبایل</th><th>مرحله</th><th>سفارش</th><th>آخرین پیام</th><th></th></tr></thead>
+          <tbody id="contacts-body"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- Posts -->
+    <section data-panel="posts" hidden>
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-top:0">
+          <h2>پست‌های پیج</h2>
+          <button class="btn ghost" id="btn-sync">دریافت از اینستاگرام</button>
+        </div>
+        <p class="muted">BoxAPI پست‌ها را از طریق وب‌هوک می‌فرستد؛ بعد از چند ثانیه صفحه را تازه کنید.</p>
+        <div class="posts" id="posts"></div>
+      </div>
+    </section>
+
+    <!-- Alerts -->
+    <section data-panel="alerts" hidden>
+      <form class="card" id="form-alerts">
+        <h2>هشدار به مدیر فروشگاه</h2>
+        <p class="muted">برای شکایت مشتری، رسید پرداخت و پیام‌های پیگیری سبد، در تلگرام یا بله خبر بگیرید. بله بدون فیلترشکن کار می‌کند.</p>
+        <label for="alert-channel">پیام‌رسان</label>
+        <select id="alert-channel">
+          <option value="none">خاموش</option>
+          <option value="bale">بله</option>
+          <option value="telegram">تلگرام</option>
+        </select>
+        <label for="alert-token">توکن ربات <span class="muted" id="token-state"></span></label>
+        <input type="password" id="alert-token" class="ltr" autocomplete="off" placeholder="از @botfather در بله یا BotFather در تلگرام">
+        <label for="alert-chat">شناسه چت (Chat ID)</label>
+        <input type="text" id="alert-chat" class="ltr">
+        <p class="muted">شناسه چت: به ربات خودتان پیام بدهید، سپس آدرس <span class="ltr">https://tapi.bale.ai/bot&lt;TOKEN&gt;/getUpdates</span> (برای تلگرام <span class="ltr">api.telegram.org</span>) را باز کنید و عدد <span class="ltr">chat.id</span> را بردارید.</p>
+        <div class="row">
+          <button class="btn" type="submit">ذخیره</button>
+          <button class="btn ghost" type="button" id="btn-alert-test">ارسال پیام تست</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Account -->
+    <section data-panel="account" hidden>
+      <form class="card" id="form-password">
+        <h2>تغییر رمز عبور</h2>
+        <p class="muted" id="owner-line"></p>
+        <label for="pw-current">رمز فعلی</label>
+        <input type="password" id="pw-current" required autocomplete="current-password">
+        <label for="pw-next">رمز جدید (حداقل ۸ کاراکتر)</label>
+        <input type="password" id="pw-next" minlength="8" required autocomplete="new-password">
+        <div class="row"><button class="btn" type="submit">ذخیره</button></div>
+      </form>
+      <div class="card">
+        <h3>آخرین پاسخ Follow-Gate از BoxAPI</h3>
+        <p class="muted">برای عیب‌یابی: آخرین نتیجه follow_status که از وب‌هوک رسیده.</p>
+        <pre class="code" id="follow-event">هنوز دریافت نشده</pre>
+      </div>
+    </section>
+  </main>
+</section>
+
+<div id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

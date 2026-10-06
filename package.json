@@ -1,0 +1,31 @@
+{
+  "name": "direp",
+  "version": "1.0.0",
+  "description": "Free, self-hosted Instagram DM automation for Iranian shops on top of the official BoxAPI Instagram API",
+  "type": "module",
+  "main": "dist/server.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "vitest run"
+  },
+  "keywords": ["instagram", "boxapi", "direct", "automation", "cart-recovery", "persian"],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.9.0",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}
