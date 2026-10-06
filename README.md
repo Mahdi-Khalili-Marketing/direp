@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/node-%3E%3D22.13-339933?logo=node.js&logoColor=white" alt="Node 22">
   <img src="https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white" alt="Docker">
   <img src="https://img.shields.io/badge/API-BoxAPI%20official-8b5cf6" alt="BoxAPI official API">
-  <img src="https://img.shields.io/badge/زبان-فارسی-f472b6" alt="فارسی">
+  <img src="https://img.shields.io/badge/lang-Persian%20(RTL)-f472b6" alt="Persian">
 </p>
 
 # Direp
